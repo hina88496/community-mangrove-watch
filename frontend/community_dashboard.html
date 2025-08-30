@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Coastal Community Dashboard</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
+    body { background: linear-gradient(to bottom,#00796b,#004d40); color:white; }
+    header { background: rgba(0,77,64,0.9); padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:10; }
+    header h1 { font-size:1.8rem; color:#80deea; font-weight:bold; }
+    nav ul { display:flex; gap:1.5rem; list-style:none; }
+    nav ul li a { text-decoration:none; color:white; font-weight:500; transition: color 0.3s ease; }
+    nav ul li a:hover { color:#4dd0e1; }
+    .logout-btn { background:#ff5252; color:white; border:none; padding:0.5rem 1rem; font-size:0.9rem; border-radius:5px; cursor:pointer; transition: background 0.3s ease; }
+    .logout-btn:hover { background:#ff1744; }
+    .dashboard { padding:2rem; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1.5rem; }
+    .card { background: rgba(255,255,255,0.1); border-radius:15px; padding:1.5rem; text-align:center; transition: transform 0.3s ease, background 0.3s ease; cursor:pointer; }
+    .card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.2); }
+    .card h2 { margin-bottom:1rem; color:#b2ebf2; }
+    .card ul { text-align:left; margin-top:0.5rem; }
+    footer { background: rgba(0,77,64,0.95); padding:1rem; text-align:center; margin-top:2rem; }
+    footer iframe { width:100%; height:300px; border:none; border-radius:10px; }
+    button.submit-report { margin-top:10px; padding:0.5rem 1rem; border:none; border-radius:5px; cursor:pointer; background:#4dd0e1; color:#004d40; font-weight:bold; }
+    button.submit-report:hover { background:#26c6da; }
+    input, select, textarea { width:90%; margin:0.3rem 0; padding:0.5rem; border-radius:5px; border:none; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <h1>Welcome, <span id="user-name">User</span></h1>
+    <nav>
+      <ul>
+        <li><a href="#">Games & Activities</a></li>
+        <li><a href="#">Badges</a></li>
+        <li><a href="#">Leaderboards</a></li>
+        <li><a href="#">Community News</a></li>
+      </ul>
+    </nav>
+    <button class="logout-btn">Logout</button>
+  </header>
+
+  <!-- DASHBOARD CARDS -->
+  <section class="dashboard">
+
+    <!-- REPORT INCIDENT CARD -->
+    <div class="card" id="report-card">
+      <h2>Report Incident</h2>
+      <p>Submit details of illegal cutting, dumping, or damage to mangroves. Upload photos with location data.</p>
+      <input type="text" id="report-location" placeholder="Location"/>
+      <select id="report-type">
+        <option value="">Select Issue Type</option>
+        <option value="Pollution">Pollution</option>
+        <option value="Deforestation">Deforestation</option>
+        <option value="Other">Other</option>
+      </select>
+      <textarea id="report-desc" placeholder="Description (optional)"></textarea>
+      <button class="submit-report" id="submitReportBtn">Submit Report</button>
+    </div>
+
+    <!-- BADGES CARD -->
+    <div class="card" id="badges-card">
+      <h2>Your Badges</h2>
+      <ul id="badges-list"></ul>
+    </div>
+
+    <!-- TRACK REPORTS CARD -->
+    <div class="card" id="track-reports-card">
+      <h2>Track Reports</h2>
+      <ul id="reports-list"></ul>
+    </div>
+
+  </section>
+
+  <!-- FOOTER WITH MAP -->
+  <footer>
+    <h3>Mangrove Map</h3>
+    <iframe 
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31520.4108038469!2d73.0000!3d19.0000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be9a7b9e5b69f37%3A0x1a6505e1f41b36a0!2sMangrove!5e0!3m2!1sen!2sin!4v1686488873210!5m2!1sen!2sin" 
+      allowfullscreen="">
+    </iframe>
+  </footer>
+
+  <!-- SCRIPT FOR BACKEND CONNECTION -->
+  <script>
+    const API_BASE = "http://localhost:5000/api";
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+
+    // Check if logged in
+    if(!token) window.location.href = "/login.html";
+
+    // Fetch user profile
+    async function getProfile() {
+      try {
+        const res = await fetch(`${API_BASE}/users/profile`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        document.getElementById("user-name").textContent = data.name;
+      } catch(err) { console.error(err); }
+    }
+
+    // Fetch badges
+    async function getBadges() {
+      try {
+        const res = await fetch(`${API_BASE}/badges/${userId}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const badges = await res.json();
+        const list = document.getElementById("badges-list");
+        list.innerHTML = "";
+        badges.forEach(badge => {
+          const li = document.createElement("li");
+          li.textContent = `${badge.badgeName} - ${badge.points} pts`;
+          list.appendChild(li);
+        });
+      } catch(err) { console.error(err); }
+    }
+
+    // Fetch user reports
+    async function getReports() {
+      try {
+        const res = await fetch(`${API_BASE}/reports`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const reports = await res.json();
+        const list = document.getElementById("reports-list");
+        list.innerHTML = "";
+        reports.filter(r => r.userId._id === userId)
+          .forEach(r => {
+            const li = document.createElement("li");
+            li.textContent = `${r.issueType} at ${r.location} - Status: ${r.status}`;
+            list.appendChild(li);
+          });
+      } catch(err) { console.error(err); }
+    }
+
+    // Submit report
+    document.getElementById("submitReportBtn").addEventListener("click", async () => {
+      const location = document.getElementById("report-location").value;
+      const issueType = document.getElementById("report-type").value;
+      const description = document.getElementById("report-desc").value;
+
+      if(!location || !issueType) return alert("Please fill location and issue type");
+
+      try {
+        const res = await fetch(`${API_BASE}/reports`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ location, issueType, description, imageUrl: "" })
+        });
+        const data = await res.json();
+        alert("Report submitted successfully!");
+        getReports();
+      } catch(err) { console.error(err); }
+    });
+
+    // Logout
+    document.querySelector(".logout-btn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      window.location.href = "/login.html";
+    });
+
+    // Initialize dashboard
+    getProfile();
+    getBadges();
+    getReports();
+  </script>
+
+</body>
+</html>

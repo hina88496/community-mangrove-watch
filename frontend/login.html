@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Mangrove Watch - Login</title>
+  <style>
+    /* General body styling */
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        font-family: 'Arial', sans-serif;
+        background: url('https://konten.usu.ac.id/storage/posts/25032/dedication-restorasi-mangrove--sepotong-tindakan-untuk-keberlangsungan-kehidupan-tjo.webp') no-repeat center center/cover;
+        position: relative;
+    }
+
+    body::before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4); /* Dark overlay */
+        z-index: -1;
+    }
+
+    header {
+        font-family: 'Arial Black', sans-serif;
+        color: #ffffff;
+        font-size: 60px;
+        margin: 20px;
+        text-align: center;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    }
+
+    /* Container styling */
+    .login-container {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 40px 30px;
+        border-radius: 15px;
+        box-shadow: 0 12px 25px rgba(0,0,0,0.3);
+        width: 90%;
+        max-width: 450px;
+        margin: 20px;
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px);}
+        to { opacity: 1; transform: translateY(0);}
+    }
+
+    .login-container h1 {
+        color: #2a5934;
+        text-align: center;
+        margin-bottom: 25px;
+        font-size: 32px;
+    }
+
+    /* Inputs & select */
+    .login-container input, 
+    .login-container select {
+        font-size: 16px;
+        width: 100%;
+        padding: 15px 12px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-sizing: border-box;
+        transition: 0.3s;
+    }
+
+    .login-container input:focus, 
+    .login-container select:focus {
+        outline: none;
+        border-color: #2a5934;
+        box-shadow: 0 0 8px rgba(42, 89, 52, 0.4);
+    }
+
+    /* Buttons */
+    .login-container button {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #2a5934, #4caf50);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 20px 0;
+        transition: 0.3s;
+    }
+
+    .login-container button:hover {
+        background: linear-gradient(135deg, #1f4427, #3a7d33);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Signup link */
+    .signup {
+        margin-top: 10px;
+        font-size: 14px;
+        text-align: center;
+        color: #333;
+    }
+
+    .signup a {
+        color: #2a5934;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .signup a:hover {
+        text-decoration: underline;
+        color: #1f4427;
+    }
+
+    /* Hide signup form initially */
+    #signupForm {
+        display: none;
+    }
+
+    /* Responsive design */
+    @media (max-width: 600px) {
+        header {
+            font-size: 40px;
+            margin: 10px;
+        }
+
+        .login-container {
+            padding: 30px 20px;
+        }
+
+        .login-container h1 {
+            font-size: 28px;
+        }
+    }
+</style>
+
+</head>
+
+<body>
+<header>Mangrow</header>
+  
+  <!-- LOGIN FORM -->
+  <div class="login-container" id="loginForm">
+    <h1>LOGIN</h1>
+    <select id="role">
+      <option value="" disabled selected>Login As:</option>
+      <option value="community">Coastal Community</option>
+      <option value="ngo">NGO</option>
+      <option value="government">Government Dept</option>
+      <option value="researcher">Researcher</option>
+    </select>
+
+    <input type="text" placeholder="Username" id="username" name="Username">
+    <input type="password" placeholder="Password" id="password" name="Password">
+
+    <button onclick="login()">Login</button>
+
+    <div class="signup">
+      Don't have an account? <a onclick="showSignup()">Sign up</a>
+    </div>
+  </div>
+
+  <!-- SIGNUP FORM -->
+  <div class="login-container" id="signupForm">
+    <h1>SIGN UP</h1>
+    <select id="signupRole">
+      <option value="" disabled selected>Sign Up As:</option>
+      <option value="community">Coastal Community</option>
+      <option value="ngo">NGO</option>
+      <option value="government">Government Dept</option>
+      <option value="researcher">Researcher</option>
+    </select>
+
+    <input type="text" placeholder="Full Name" id="signupName" name="Full Name">
+    <input type="text" placeholder="Username" id="signupUsername" name="Username">
+    <input type="email" placeholder="Email" id="signupEmail" name="Email">
+    <input type="password" placeholder="Password" id="signupPassword" name="Password">
+
+    <button onclick="signup()">Sign Up</button>
+
+    <div class="signup">
+      Already have an account? <a onclick="showLogin()">Login</a>
+    </div>
+  </div>
+ 
+  <script>
+const API_BASE = "http://localhost:5000/api/users";
+
+// Show Signup
+function showSignup() {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("signupForm").style.display = "block";
+}
+
+// Show Login
+function showLogin() {
+    document.getElementById("signupForm").style.display = "none";
+    document.getElementById("loginForm").style.display = "block";
+}
+
+// LOGIN FUNCTION
+async function login() {
+    const role = document.getElementById("role").value;
+    const email = document.getElementById("username").value; // Make sure user enters email
+    const password = document.getElementById("password").value;
+
+    if (!role || !email || !password) {
+        alert("Please select a role and fill all fields!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }) // backend login only needs email + password
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("Login successful!");
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data));
+
+            // Redirect based on role
+            if (data.role === "community") {
+                window.location.href = "community_dashboard.html";
+            } else if (data.role === "ngo") {
+                window.location.href = "ngo_dashboard.html";
+            } else if (data.role === "government") {
+                window.location.href = "government_dashboard.html";
+            } else if (data.role === "researcher") {
+                window.location.href = "researcher_dashboard.html";
+            }
+        } else {
+            alert(data.message || "Invalid login credentials");
+        }
+    } catch (error) {
+        alert("Server error. Try again later.");
+        console.error(error);
+    }
+}
+
+// SIGNUP FUNCTION
+async function signup() {
+    const role = document.getElementById("signupRole").value;
+    const name = document.getElementById("signupName").value;
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
+
+    if (!role || !name || !email || !password) {
+        alert("Please fill all signup fields!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password, role })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("Signup successful! Please log in.");
+            showLogin();
+        } else {
+            alert(data.message || "Signup failed");
+        }
+    } catch (error) {
+        alert("Server error. Try again later.");
+        console.error(error);
+    }
+}
+</script>
+
+</body>
+</html>
