@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Games/puzzles</title>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<style>
+/* Reset & Base */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Roboto',sans-serif;}
+html,body{
+  scroll-behavior:smooth;
+  background:linear-gradient(135deg,#1e3c72,#2a5298,#00c6ff);
+  color:#fff;
+  overflow-x:hidden;
+}
+
+/* Header */
+header{
+  background:rgba(0,0,0,0.8);
+  padding:1rem 2rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:0;
+  z-index:100;
+  box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+header h1{
+  font-size:1.8rem;
+  color:#00ffff;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+header h1 i{color:#ffd700;}
+nav ul{
+  display:flex;
+  gap:1.5rem;
+  list-style:none;
+}
+nav ul li a{
+  text-decoration:none;
+  color:#fff;
+  font-weight:500;
+  cursor:pointer;
+  transition:color 0.3s ease;
+}
+nav ul li a:hover,nav ul li a.active{
+  color:#ffd700;
+}
+.logout-btn{
+  background:#ff4d4d;
+  border:none;
+  padding:0.5rem 1rem;
+  color:#fff;
+  font-weight:bold;
+  border-radius:8px;
+  cursor:pointer;
+  transition:background 0.3s,transform 0.3s;
+}
+.logout-btn:hover{
+  background:#e60000;
+  transform:scale(1.05);
+}
+
+/* Main Content */
+main{
+  padding:2rem;
+}
+section{
+  padding:2rem;
+  margin:2rem auto;
+  background:rgba(255,255,255,0.1);
+  border-radius:20px;
+  max-width:1200px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.4);
+  transition:transform 0.3s;
+}
+section:hover{transform:translateY(-5px);}
+section h2{
+  text-align:center;
+  font-size:1.8rem;
+  color:#00ffff;
+  margin-bottom:1rem;
+}
+section p{
+  text-align:center;
+  font-size:1.1rem;
+}
+
+/* Cards grid */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:1rem;
+  padding:1rem;
+}
+.card{
+  background:rgba(255,255,255,0.15);
+  padding:1rem;
+  border-radius:15px;
+  text-align:center;
+  box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+.card h3{color:#ffd700;margin-bottom:0.5rem;}
+
+/* Highlight on scroll */
+.active-section{
+  box-shadow:0 0 20px #ffd700;
+  transform:scale(1.02);
+  transition:0.5s;
+}
+
+/* Responsive */
+@media(max-width:768px){
+  nav ul{flex-direction:column;gap:1rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><i class="fas fa-water"></i>Games/quiz</h1>
+  <nav>
+    <ul>
+      <li><a class="active" href="#dashboard">Dashboard</a></li>
+      <li><a href="#badges">Badges</a></li>
+      <li><a href="#leaderboard">Leaderboard</a></li>
+      <li><a href="#games">Games</a></li>
+    </ul>
+  </nav>
+  <button class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+</header>
+
+<main>
+  <!-- Dashboard Section -->
+  <section id="dashboard">
+    <h2><i class="fas fa-home"></i> Dashboard Overview</h2>
+    <p>Welcome! Monitor updates, statistics, and your activity summary below.</p>
+    <div class="cards">
+      <div class="card"><h3>Reports</h3><p>15 New Reports Today</p></div>
+      <div class="card"><h3>Active Users</h3><p>230 Community Members</p></div>
+      <div class="card"><h3>Events</h3><p>3 Upcoming Activities</p></div>
+    </div>
+  </section>
+
+  <!-- Badges Section -->
+  <section id="badges">
+    <h2><i class="fas fa-medal"></i> Badges</h2>
+    <div class="cards">
+      <div class="card"><h3>Green Hero</h3><p>Planted 10+ Trees</p></div>
+      <div class="card"><h3>Carbon Saver</h3><p>Reduced CO₂ by 100kg</p></div>
+      <div class="card"><h3>Community Star</h3><p>Organized 5+ Events</p></div>
+    </div>
+  </section>
+
+  <!-- Leaderboard Section -->
+  <section id="leaderboard">
+    <h2><i class="fas fa-trophy"></i> Leaderboard</h2>
+    <div class="cards">
+      <div class="card"><h3>1. Alex</h3><p>120 Points</p></div>
+      <div class="card"><h3>2. Priya</h3><p>110 Points</p></div>
+      <div class="card"><h3>3. John</h3><p>95 Points</p></div>
+    </div>
+  </section>
+
+  <!-- Games Section -->
+<section id="games">
+  <h2><i class="fas fa-gamepad"></i> Games & Quizzes</h2>
+  <p>Select a game to play and earn badges!</p>
+  <div id="game-list" class="cards">
+    <!-- Game 1 -->
+    <div class="card game" data-game="quiz">
+      <h3>Mangrove Quiz</h3>
+      <p>Test your knowledge</p>
+    </div>
+
+    <!-- Game 2 -->
+    <div class="card game" data-game="planting">
+      <h3>Tree Planting Game</h3>
+      <p>Plant and grow virtually</p>
+    </div>
+  </div>
+
+  <!-- Game Play Area -->
+  <div id="game-display" style="display:none; margin-top:20px; background:rgba(255,255,255,0.1); padding:20px; border-radius:15px;">
+    <button id="back-btn" style="background:#ff5252;color:white;padding:8px 12px;border:none;border-radius:5px;cursor:pointer;margin-bottom:10px;">← Back</button>
+    <div id="game-content"></div>
+  </div>
+</section>
+
+
+</main>
+<script>
+// Get token from localStorage (after login)
+const token = localStorage.getItem("token"); // Make sure to store JWT after login
+
+const gameCards = document.querySelectorAll('.game');
+const gameList = document.getElementById('game-list');
+const gameDisplay = document.getElementById('game-display');
+const gameContent = document.getElementById('game-content');
+const backBtn = document.getElementById('back-btn');
+const leaderboardCards = document.querySelector("#leaderboard .cards");
+
+// Game templates
+const games = {
+  quiz: `
+    <h3 style="color:#b2ebf2;">Mangrove Quiz</h3>
+    <p>Answer the following questions:</p>
+    <div id="quiz-area">
+      <p id="quiz-question"></p>
+      <div id="quiz-options"></div>
+      <button id="next-btn">Next</button>
+      <p id="quiz-score"></p>
+    </div>
+  `,
+  planting: `
+    <h3 style="color:#b2ebf2;">Tree Planting Game</h3>
+    <p>Click the button to grow your mangrove tree!</p>
+    <button id="grow-btn" style="padding:10px 20px;background:#2a5934;color:white;border:none;border-radius:5px;cursor:pointer;">🌱 Grow Tree</button>
+    <p id="tree-message" style="margin-top:10px;"></p>
+  `
+};
+
+// Handle game selection
+gameCards.forEach(card => {
+  card.addEventListener('click', () => {
+    const selectedGame = card.getAttribute('data-game');
+    gameList.style.display = 'none';
+    gameDisplay.style.display = 'block';
+    gameContent.innerHTML = games[selectedGame];
+
+    if (selectedGame === 'quiz') startQuiz();
+    if (selectedGame === 'planting') startPlantingGame();
+  });
+});
+
+// Back button
+backBtn.addEventListener('click', () => {
+  gameList.style.display = 'flex';
+  gameDisplay.style.display = 'none';
+  gameContent.innerHTML = '';
+});
+
+// Submit game to backend
+async function submitGame(gameType, score) {
+  if (!token) return alert("You must login first!");
+  try {
+    const res = await fetch("http://localhost:5000/api/games", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({ gameType, score })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.msg || "Failed to submit game");
+    alert(`Game submitted! You earned ${data.points} points.`);
+    fetchLeaderboard();
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  }
+}
+
+// Quiz functionality
+function startQuiz() {
+  const quizData = [
+    { question: "What is the main role of mangroves?", options: ["Tourism", "Coastal protection", "Fishing only", "Urban development"], answer: "Coastal protection" },
+    { question: "Which species is commonly found in mangroves?", options: ["Mangrove crab", "Elephant", "Penguin", "Lion"], answer: "Mangrove crab" },
+    { question: "Mangroves help in:", options: ["Air pollution", "Carbon storage", "Soil erosion", "Traffic control"], answer: "Carbon storage" }
+  ];
+  let current = 0, score = 0;
+
+  function loadQuestion() {
+    document.getElementById('quiz-question').textContent = quizData[current].question;
+    const optionsDiv = document.getElementById('quiz-options');
+    optionsDiv.innerHTML = '';
+    quizData[current].options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.textContent = opt;
+      btn.style.cssText = "margin:5px; padding:8px 12px; background:#2a5934; color:white; border:none; border-radius:5px; cursor:pointer;";
+      btn.onclick = () => {
+        if (opt === quizData[current].answer) score++;
+        document.getElementById('quiz-score').textContent = `Score: ${score}/${quizData.length}`;
+      };
+      optionsDiv.appendChild(btn);
+    });
+  }
+
+  document.getElementById('next-btn').onclick = () => {
+    current++;
+    if (current < quizData.length) loadQuestion();
+    else {
+      document.getElementById('quiz-question').textContent = "Quiz Completed!";
+      document.getElementById('quiz-options').innerHTML = '';
+      submitGame("quiz", score); // Submit quiz score
+    }
+  };
+
+  loadQuestion();
+}
+
+// Planting game functionality
+function startPlantingGame() {
+  const growBtn = document.getElementById('grow-btn');
+  const treeMsg = document.getElementById('tree-message');
+  let growthStage = 0;
+
+  growBtn.onclick = () => {
+    growthStage++;
+    if (growthStage === 1) treeMsg.textContent = "🌱 Seed planted!";
+    else if (growthStage === 2) treeMsg.textContent = "🌿 The plant is growing!";
+    else if (growthStage === 3) {
+      treeMsg.textContent = "🌳 Your mangrove is fully grown!";
+      submitGame("planting", 10); // Award 10 points for full growth
+    }
+    else treeMsg.textContent = "🌳 Your tree is thriving!";
+  };
+}
+
+// Fetch leaderboard from backend
+async function fetchLeaderboard() {
+  if (!token) return;
+  try {
+    const res = await fetch("http://localhost:5000/api/games", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const games = await res.json();
+    const pointsMap = {};
+    games.forEach(g => {
+      pointsMap[g.userId] = (pointsMap[g.userId] || 0) + g.score;
+    });
+    const sorted = Object.entries(pointsMap).sort((a,b) => b[1]-a[1]);
+
+    leaderboardCards.innerHTML = '';
+    sorted.forEach(([userId, pts], i) => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `<h3>${i+1}. User</h3><p>${pts} Points</p>`;
+      leaderboardCards.appendChild(div);
+    });
+  } catch (err) { console.error(err); }
+}
+
+fetchLeaderboard();
+</script>
+
+</body>
+</html>

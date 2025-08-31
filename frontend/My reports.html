@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Reports</title>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Roboto', sans-serif; }
+body { background: linear-gradient(135deg, #1e3c72, #2a5298, #00c6ff); color: #fff; min-height:100vh; padding:2rem; }
+
+h1 { color:#00ffff; margin-bottom:1rem; text-align:center; }
+.card { background: rgba(255,255,255,0.15); padding:1.5rem; border-radius:20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); max-width:800px; margin:auto; }
+.status-list li { display:flex; align-items:center; gap:0.7rem; margin:0.5rem 0; padding:0.5rem 1rem; border-radius:12px; opacity:0; animation: fadeIn 0.6s forwards; font-weight:500; }
+.status-list li .badge-icon { font-size:1.2rem; font-weight:bold; }
+.badge-Verified { background:#00b300; color:white; }
+.badge-Pending { background:#ffcc00; color:black; }
+.badge-Rejected { background:#e60000; color:white; }
+@keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+</style>
+</head>
+<body>
+
+<h1>My Reports</h1>
+<div class="card">
+  <ul class="status-list" id="reports-list">
+    <!-- Reports will be appended here -->
+  </ul>
+</div>
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+const token = localStorage.getItem("token");
+const userId = localStorage.getItem("userId");
+if(!token) window.location.href = "/login.html";
+
+const reportList = document.getElementById("reports-list");
+
+async function getReports() {
+  try {
+    const res = await fetch(`${API_BASE}/reports`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const reports = await res.json();
+
+    // Filter reports by current user
+    const userReports = reports.filter(r => {
+      const id = r.userId?._id || r.userId;
+      return id?.toString() === userId;
+    });
+
+    // Sort newest first
+    userReports.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    reportList.innerHTML = "";
+    userReports.forEach(r => {
+      const li = document.createElement("li");
+      const icon = r.status === "Verified" ? "🌱" :
+                   r.status === "Pending" ? "⏳" : "❌";
+      li.innerHTML = `<span class="badge-icon">${icon}</span>
+                      <strong>${r.issueType}</strong> at <em>${r.location}</em> - Status: ${r.status}`;
+      li.classList.add(`badge-${r.status}`);
+      reportList.appendChild(li);
+      setTimeout(()=>li.style.opacity=1,50);
+    });
+
+    if(userReports.length === 0) {
+      reportList.innerHTML = "<li>You haven't submitted any reports yet.</li>";
+    }
+  } catch(err) {
+    console.error(err);
+    alert("Failed to load reports.");
+  }
+}
+
+// Initialize
+getReports();
+</script>
+
+</body>
+</html>

@@ -17,7 +17,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-/* Reset & Body */
 * { margin:0; padding:0; box-sizing:border-box; font-family: 'Roboto', sans-serif; }
 body { background: linear-gradient(135deg, #1e3c72, #2a5298, #00c6ff); color: #fff; min-height:100vh; position:relative; overflow-x:hidden; }
 
@@ -29,19 +28,15 @@ body { background: linear-gradient(135deg, #1e3c72, #2a5298, #00c6ff); color: #f
 nav { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; background: rgba(0,0,0,0.6); position: sticky; top:0; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 nav h1 { font-size:1.8rem; color:#00ffff; }
 nav ul { display:flex; list-style:none; gap:2rem; flex-wrap:wrap;}
-nav ul li a { color:white; text-decoration:none; font-weight:500; transition: color 0.3s ease; }
+nav ul li a { color:white; text-decoration:none; font-weight:500; transition: color 0.3s ease; cursor:pointer; }
 nav ul li a:hover { color:#ffd700; }
 .logout-btn { background:#ff4d4d; border:none; padding:0.5rem 1rem; border-radius:10px; cursor:pointer; font-weight:bold; transition: transform 0.3s, background 0.3s; }
 .logout-btn:hover { background:#ff1a1a; transform:scale(1.1); }
 
 /* Main Container */
 .container { display:flex; gap:2rem; flex-wrap:wrap; padding:2rem; position:relative; z-index:1; }
-
-/* Left/Right Cards */
-.steps-card, .report-card, .carbon-card { transition: transform 0.3s, background 0.3s; }
-.steps-card:hover, .report-card:hover, .carbon-card:hover { transform: translateY(-10px); }
-
-/* Cards Styling */
+.steps-card, .report-card, .carbon-card, .status-card { transition: transform 0.3s, background 0.3s; }
+.steps-card:hover, .report-card:hover, .carbon-card:hover, .status-card:hover { transform: translateY(-10px); }
 .card { background: rgba(255,255,255,0.15); padding:1.5rem; border-radius:20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
 
 /* Steps Card */
@@ -88,21 +83,19 @@ footer h3 { color:#ffd700; margin-bottom:1rem; }
 @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
 @keyframes floatLeaf { 0% { transform: translateY(100vh) rotate(0deg); opacity:0; } 10% { opacity:0.6; } 50% { opacity:0.8; } 100% { transform: translateY(-10vh) rotate(360deg); opacity:0; } }
 
-/* Responsive */
 @media(max-width:900px){ .container { flex-direction:column; } nav ul { flex-direction:column; gap:1rem; } footer { flex-direction:column; gap:1rem; } }
 </style>
 </head>
 <body>
 
-<!-- Floating leaves -->
 <div id="leaves-container"></div>
 
-<!-- Navbar -->
 <nav>
   <h1>Coastal Dashboard</h1>
   <ul>
-    <li><a href="#report">Report Issue</a></li>
-    <li><a href="#games">Games/Puzzles</a></li>
+    <li><a id="nav-report" href="#report">Report Issue</a></li>
+    <li><a id="nav-my-reports">My Reports</a></li>
+    <li><a href="games.html">Games/Puzzles</a></li>
     <li><a href="#earn">Earn (Badges/Points)</a></li>
     <li><a href="#govreply">Government Replies</a></li>
     <li><a href="#leaderboard">Leaderboard</a></li>
@@ -110,10 +103,8 @@ footer h3 { color:#ffd700; margin-bottom:1rem; }
   <button class="logout-btn">Logout</button>
 </nav>
 
-<!-- Main Container -->
 <div class="container">
-
-  <!-- Left: Steps Card -->
+  <!-- Steps Card -->
   <div class="card steps-card" style="flex:1; min-width:300px;">
     <h2>Steps to Report an Issue</h2>
     <ol>
@@ -125,7 +116,7 @@ footer h3 { color:#ffd700; margin-bottom:1rem; }
     </ol>
   </div>
 
-  <!-- Right: Report Form + Carbon Calculator -->
+  <!-- Right Column: Report, Carbon, Leaderboard -->
   <div style="flex:1; min-width:300px; display:flex; flex-direction:column; gap:1.5rem;">
     <div class="card report-card" id="report">
       <h2>Report Issue</h2>
@@ -159,26 +150,18 @@ footer h3 { color:#ffd700; margin-bottom:1rem; }
       <h2>Weekly Leaderboard</h2>
       <table>
         <thead><tr><th>Rank</th><th>User</th><th>Points</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>Alice</td><td>120</td></tr>
-          <tr><td>2</td><td>Bob</td><td>110</td></tr>
-          <tr><td>3</td><td>Charlie</td><td>95</td></tr>
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
   </div>
 
-</div>
-
-<!-- Status Card -->
-<div class="container">
-  <div class="card status-card" style="flex:1;">
+  <!-- Previous Reports Card: full width below -->
+  <div class="card status-card" style="flex:1 1 100%;" id="my-reports">
     <h2>Your Previous Reports</h2>
     <ul class="status-list" id="reports-list"></ul>
   </div>
 </div>
 
-<!-- Footer -->
 <footer>
   <div class="footer-left">
     <h3>Mangroves Demolished per Year</h3>
@@ -191,55 +174,52 @@ footer h3 { color:#ffd700; margin-bottom:1rem; }
 </footer>
 
 <script>
-// ------------------- API Base -------------------
+// --- Setup ---
 const API_BASE = "http://localhost:5000/api";
-
-// ------------------- Get token & userId -------------------
 const token = localStorage.getItem("token");
 const userId = localStorage.getItem("userId");
 if(!token) window.location.href = "/login.html";
 
-// ------------------- DOM Elements -------------------
-const reportList = document.getElementById("reports-list");
-const submitReportBtn = document.getElementById("submitReportBtn");
+// Floating Leaves
+const leavesContainer = document.getElementById("leaves-container");
+for(let i=0;i<10;i++){
+  const leaf = document.createElement("div");
+  leaf.classList.add("leaf");
+  leaf.style.left = `${Math.random()*100}vw`;
+  leaf.style.animationDuration = `${5+Math.random()*5}s`;
+  leaf.style.animationDelay = `${Math.random()*5}s`;
+  leavesContainer.appendChild(leaf);
+}
 
-// ------------------- Get Profile -------------------
+// Profile
 async function getProfile(){
   try{
-    const res = await fetch(`${API_BASE}/auth/${userId}`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
+    const res = await fetch(`${API_BASE}/auth/me`, { headers: { "Authorization": `Bearer ${token}` } });
     const data = await res.json();
     document.querySelector("nav h1").textContent = `Welcome, ${data.name}`;
   } catch(err){ console.error(err); }
 }
 
-// ------------------- Get Badges -------------------
+// Badges
 async function getBadges(){
   try{
-    const res = await fetch(`${API_BASE}/badges/${userId}`, {
-      headers:{ "Authorization": `Bearer ${token}` }
-    });
+    const res = await fetch(`${API_BASE}/badges/${userId}`, { headers:{ "Authorization": `Bearer ${token}` } });
     const badges = await res.json();
-    const list = document.getElementById("badges-list");
+    let list = document.getElementById("badges-list");
     if(!list) return;
     list.innerHTML = "";
-    badges.forEach(badge => {
-      const li = document.createElement("li");
-      li.textContent = `${badge.badgeName} - ${badge.points} pts`;
-      list.appendChild(li);
-    });
+    badges.forEach(b=>{ const li=document.createElement("li"); li.textContent = `${b.badgeName} - ${b.points} pts`; list.appendChild(li); });
   } catch(err){ console.error(err); }
 }
 
-// ------------------- Get Leaderboard -------------------
+// Leaderboard
 async function getLeaderboard(){
   try{
     const res = await fetch(`${API_BASE}/leaderboard`);
     const users = await res.json();
     const tbody = document.querySelector(".leaderboard-card tbody");
     tbody.innerHTML = "";
-    users.forEach((u,i) => {
+    users.forEach((u,i)=>{
       const tr = document.createElement("tr");
       tr.innerHTML = `<td>${i+1}</td><td>${u.name}</td><td>${u.points}</td>`;
       tbody.appendChild(tr);
@@ -247,43 +227,58 @@ async function getLeaderboard(){
   } catch(err){ console.error(err); }
 }
 
-// ------------------- Reports -------------------
-const reportList1 = document.getElementById("reports-list");
-
+// Reports
+const reportList = document.getElementById("reports-list");
 async function getReports() {
   try {
-    const res = await fetch(`${API_BASE}/reports`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
+    const res = await fetch(`${API_BASE}/reports`, { headers: { "Authorization": `Bearer ${token}` } });
     const reports = await res.json();
-
-    // Filter only current user's reports
-    const userReports = reports.filter(r => r.userId._id.toString() === userId);
-
+    const userReports = reports.filter(r => {
+      const id = r.userId?._id || r.userId;
+      return id?.toString() === userId;
+    });
+    userReports.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
     reportList.innerHTML = "";
-
-    userReports.forEach(r => {
+    userReports.forEach(r=>{
       const li = document.createElement("li");
-      const icon = r.status === "Verified" ? "🌱" : r.status === "Pending" ? "⏳" : "❌";
+      const icon = r.status==="Verified"?"🌱":r.status==="Pending"?"⏳":"❌";
       li.innerHTML = `<span class="badge-icon">${icon}</span> ${r.issueType} at ${r.location} - Status: ${r.status}`;
       li.classList.add(`badge-${r.status}`);
       reportList.appendChild(li);
-      setTimeout(() => li.style.opacity = 1, 50);
+      setTimeout(()=>li.style.opacity=1,50);
     });
-  } catch (err) {
-    console.error(err);
-  }
+  } catch(err){ console.error(err); }
 }
 
-// ------------------- Submit Report -------------------
+// Submit Report with optimistic UI & token check
 document.getElementById("submitReportBtn").addEventListener("click", async () => {
   const location = document.getElementById("report-location").value;
   const issueType = document.getElementById("report-type").value;
   const description = document.getElementById("report-desc").value;
   const fileInput = document.getElementById("report-file");
 
-  if (!location || !issueType || !description) return alert("Please fill all fields");
+  if (!token || !userId) {
+    alert("You are not logged in. Redirecting to login...");
+    window.location.href = "/login.html";
+    return;
+  }
 
+  if (!location || !issueType || !description) {
+    return alert("Please fill all fields");
+  }
+
+  // Create temporary report object for UI
+  const tempReport = { location, issueType, description, status: "Pending" };
+
+  const li = document.createElement("li");
+  li.innerHTML = `<span class="badge-icon">⏳</span> ${tempReport.issueType} at ${tempReport.location} - Status: ${tempReport.status}`;
+  li.classList.add("badge-Pending");
+  li.style.opacity = 1;
+  reportList.insertBefore(li, reportList.firstChild);
+
+  document.getElementById("my-reports").scrollIntoView({ behavior: 'smooth' });
+
+  // Prepare form data
   const formData = new FormData();
   formData.append("location", location);
   formData.append("issueType", issueType);
@@ -296,53 +291,47 @@ document.getElementById("submitReportBtn").addEventListener("click", async () =>
       headers: { "Authorization": `Bearer ${token}` },
       body: formData
     });
+
+    if (!res.ok) throw new Error("Server error");
+
     const data = await res.json();
+
+    // Update the temporary report with real status from server
+    li.innerHTML = `<span class="badge-icon">${data.report.status === "Verified" ? "🌱" : data.report.status === "Pending" ? "⏳" : "❌"}</span> ${data.report.issueType} at ${data.report.location} - Status: ${data.report.status}`;
+    li.className = `badge-${data.report.status}`;
+
     alert(`Report submitted! Status: ${data.report.status}`);
-
-    // Clear form
-    document.getElementById("report-location").value = "";
-    document.getElementById("report-type").value = "";
-    document.getElementById("report-desc").value = "";
-    fileInput.value = "";
-
-    // Refresh dashboard reports immediately
-    getReports();
   } catch (err) {
-    console.error(err);
+    console.error("Error submitting report:", err);
+    alert("Error submitting report. Please try again.");
+    li.remove(); // remove temp report if server fails
   }
+
+  // Clear form
+  document.getElementById("report-location").value = "";
+  document.getElementById("report-type").value = "";
+  document.getElementById("report-desc").value = "";
+  fileInput.value = "";
 });
 
+//   // Refresh reports list
+//   await getReports();
+// });
 
-// ------------------- Carbon Calculator -------------------
-document.getElementById("calc-carbon").addEventListener("click", () => {
+// Carbon Calculator
+document.getElementById("calc-carbon").addEventListener("click", ()=>{
   const trees = parseInt(document.getElementById("trees-planted").value) || 0;
-  const co2Saved = trees * 21;
+  const co2Saved = trees*21;
   document.getElementById("carbon-result").textContent = `Approx ${co2Saved} kg CO₂ saved by protecting ${trees} mangroves.`;
 });
 
-// ------------------- Chart -------------------
+// Chart
 const ctx = document.getElementById('mangroveChart').getContext('2d');
-new Chart(ctx, {
-  type:'line',
-  data:{
-    labels:['2019','2020','2021','2022','2023'],
-    datasets:[{
-      label:'Mangroves Demolished',
-      data:[120,95,75,50,30],
-      borderColor:'#ffd700',
-      backgroundColor:'rgba(255,215,0,0.2)',
-      fill:true,
-      tension:0.4
-    }]
-  },
-  options:{ responsive:true, plugins:{ legend:{ display:false } } }
-});
+new Chart(ctx,{type:'line',data:{labels:['2019','2020','2021','2022','2023'],datasets:[{label:'Mangroves Demolished',data:[120,95,75,50,30],borderColor:'#ffd700',backgroundColor:'rgba(255,215,0,0.2)',fill:true,tension:0.4}]},options:{responsive:true,plugins:{legend:{display:false}}}});
 
-// ------------------- Map -------------------
+// Map
 const map = L.map('map').setView([19,73],5);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  attribution:'© OpenStreetMap contributors'
-}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);
 const mangroveLocations = [
   {name:"Sundarbans, India", coords:[21.9497,88.8620]},
   {name:"Bhitar Kanika, Odisha", coords:[20.6167,86.9667]},
@@ -351,18 +340,19 @@ const mangroveLocations = [
   {name:"Mahanadi Delta", coords:[20.5667,86.1833]}
 ];
 const treeIcon = L.icon({ iconUrl:'https://cdn-icons-png.flaticon.com/512/427/427735.png', iconSize:[40,40] });
-mangroveLocations.forEach(loc=>{
-  L.marker(loc.coords,{icon:treeIcon}).addTo(map).bindPopup(loc.name);
-});
+mangroveLocations.forEach(loc=>{L.marker(loc.coords,{icon:treeIcon}).addTo(map).bindPopup(loc.name);});
 
-// ------------------- Logout -------------------
+// Logout
 document.querySelector(".logout-btn").addEventListener("click", ()=>{
   localStorage.removeItem("token");
   localStorage.removeItem("userId");
-  window.location.href = "/login.html";
+  window.location.href="/login.html";
 });
 
-// ------------------- Initialize -------------------
+// My Reports nav link
+document.getElementById("nav-my-reports").addEventListener("click", ()=>{ document.getElementById("my-reports").scrollIntoView({ behavior:'smooth' }); });
+
+// Initialize
 getProfile();
 getBadges();
 getLeaderboard();

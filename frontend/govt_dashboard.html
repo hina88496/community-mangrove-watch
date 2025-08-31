@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Government Dashboard</title>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Leaflet.js -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+/* ====== Base style ====== */
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Roboto', sans-serif; }
+body { background: linear-gradient(135deg, #1e3c72, #2a5298, #00c6ff); color:#fff; min-height:100vh; position:relative; overflow-x:hidden; }
+
+/* Floating leaves */
+#leaves-container { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+.leaf{position:absolute;width:40px;height:40px;background-image:url('https://cdn-icons-png.flaticon.com/512/427/427735.png');background-size:contain;background-repeat:no-repeat;opacity:.7;pointer-events:none;animation:floatLeaf linear infinite;}
+@keyframes floatLeaf{0%{transform:translateY(100vh) rotate(0deg);opacity:0;}10%{opacity:.6;}50%{opacity:.8;}100%{transform:translateY(-10vh) rotate(360deg);opacity:0;}}
+
+/* Navbar */
+nav{display:flex;justify-content:space-between;align-items:center;padding:1rem 2rem;background:rgba(0,0,0,0.6);position:sticky;top:0;z-index:1000;backdrop-filter:blur(10px);box-shadow:0 5px 15px rgba(0,0,0,.3);}
+nav h1{font-size:1.8rem;color:#00ffff;}
+nav ul{display:flex;list-style:none;gap:2rem;flex-wrap:wrap;}
+nav ul li a{color:#fff;text-decoration:none;font-weight:500;transition:color .3s ease;}
+nav ul li a:hover{color:#ffd700;}
+.logout-btn{background:#ff4d4d;border:none;padding:.5rem 1rem;border-radius:10px;cursor:pointer;font-weight:bold;transition:transform .3s,background .3s;}
+.logout-btn:hover{background:#ff1a1a;transform:scale(1.1);}
+
+/* Containers */
+.container{display:flex;gap:2rem;flex-wrap:wrap;padding:2rem;position:relative;z-index:1;}
+.card{background:rgba(255,255,255,0.15);padding:1.5rem;border-radius:20px;box-shadow:0 8px 20px rgba(0,0,0,.3);transition:transform .3s,background .3s;}
+.card:hover{transform:translateY(-10px);background:rgba(255,255,255,0.22);}
+
+/* Alerts */
+.alerts{padding:1rem 2rem;}
+.alert-list{display:flex;flex-direction:column;gap:.8rem;}
+.alert-item{display:flex;align-items:flex-start;gap:.8rem;background:rgba(0,0,0,0.25);border-left:6px solid #ffd54f;padding:.75rem 1rem;border-radius:12px;}
+.alert-item.critical{border-left-color:#ff5252;}
+.alert-item.warn{border-left-color:#ffb300;}
+.alert-item.info{border-left-color:#64b5f6;}
+.alert-item .icon{font-size:1.1rem;line-height:1;margin-top:.15rem;}
+.alert-item .meta{font-size:.85rem;opacity:.85;}
+.alert-actions{margin-top:.5rem;display:flex;gap:.5rem;}
+.btn{padding:.35rem .7rem;border:none;border-radius:8px;cursor:pointer;font-weight:600;}
+.btn-primary{background:#00ffff;color:#004d40;}
+.btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.35);}
+
+/* Analytics */
+.analytics{display:grid;grid-template-columns:repeat(12,1fr);gap:1.5rem;padding:0 2rem 2rem;}
+.stat-cards{grid-column:span 12;display:grid;grid-template-columns:repeat(4, minmax(180px,1fr));gap:1rem;}
+.stat{display:flex;align-items:center;gap:.8rem;padding:1rem;border-radius:16px;background:rgba(255,255,255,0.12);}
+.stat i{font-size:1.4rem;}
+.stat .num{font-size:1.6rem;font-weight:700;}
+.chart-card{grid-column:span 6;min-height:320px;display:flex;flex-direction:column;}
+.chart-wrap{position:relative;flex:1;min-height:260px;}
+
+/* Tools */
+.tools{display:grid;grid-template-columns:repeat(12,1fr);gap:1.5rem;padding:0 2rem 2rem;}
+.carbon-card{grid-column:span 6;}
+.carbon-card h2{color:#ff8c00;margin-bottom:1rem;}
+.carbon-controls{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.7rem;}
+.carbon-card input{flex:1;min-width:180px;padding:.55rem;border-radius:10px;border:none;}
+.carbon-card button{padding:.55rem 1rem;border:none;border-radius:10px;background:#00ff00;color:#004d40;font-weight:bold;cursor:pointer;transition:.3s;}
+.carbon-card button:hover{background:#00cc44;transform:scale(1.05);}
+.carbon-result{margin-top:.4rem;font-weight:700;color:#c8ffdf;}
+.leaderboard-card{grid-column:span 6;}
+.leaderboard-card h2{color:#00ff7f;margin-bottom:1rem;}
+.leader-table{width:100%;border-collapse:collapse;border-radius:14px;overflow:hidden;}
+.leader-table th,.leader-table td{padding:.7rem 1rem;text-align:left;}
+.leader-table thead th{background:#00ffff;color:#004d40;}
+.leader-table tbody tr:nth-child(even){background:rgba(255,255,255,0.1);}
+.rank{font-weight:700;}
+
+/* Footer */
+footer{display:flex;gap:2rem;justify-content:center;padding:2rem;background:rgba(0,0,0,0.7);border-top-left-radius:30px;border-top-right-radius:30px;flex-wrap:wrap;}
+.footer-content{display:flex;width:90%;max-width:1200px;gap:2rem;flex-wrap:wrap;}
+.footer-left,.footer-right{flex:1;min-width:300px;}
+footer h3{color:#ffd700;margin-bottom:1rem;}
+#map{width:100%;height:300px;border-radius:15px;background:#fff;color:#000;}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;}
+.links a{color:#fff;text-decoration:none;opacity:.9;}
+.links a:hover{color:#00ffff;}
+.social-icons{display:flex;gap:1rem;margin-top:1rem;font-size:1.4rem;}
+.social-icons a{color:#fff;}
+.social-icons a:hover{color:#81d4fa;}
+
+@media(max-width:1100px){
+.chart-card{grid-column:span 12;}
+.carbon-card,.leaderboard-card{grid-column:span 12;}
+}
+@media(max-width:900px){
+nav ul{flex-direction:column;gap:1rem;}
+.stat-cards{grid-template-columns:repeat(2,minmax(180px,1fr));}
+}
+</style>
+</head>
+<body>
+
+<!-- Floating leaves -->
+<div id="leaves-container"></div>
+
+<!-- Navbar -->
+<nav>
+<h1>Government Dashboard</h1>
+<ul>
+<li><a href="#" class="active">Dashboard</a></li>
+<li><a href="#analytics">Analytics</a></li>
+<li><a href="#tools">Tools</a></li>
+<li><a href="#map">Map</a></li>
+</ul>
+<button class="logout-btn">Logout</button>
+</nav>
+
+<!-- Alerts -->
+<section class="alerts" id="alerts">
+<div class="card">
+<h2 style="margin-bottom:.6rem;">Latest Alerts</h2>
+<div class="alert-list" id="alertList"></div>
+</div>
+</section>
+
+<!-- Analytics -->
+<section class="analytics" id="analytics">
+<div class="stat-cards">
+<div class="stat card"><i class="fa-solid fa-file-circle-exclamation"></i><div><div class="label">Total Reports</div><div class="num" id="c_reports">0</div></div></div>
+<div class="stat card"><i class="fa-solid fa-tree"></i><div><div class="label">Trees Planted</div><div class="num" id="c_trees">0</div></div></div>
+<div class="stat card"><i class="fa-solid fa-skull-crossbones"></i><div><div class="label">Illegal Incidents</div><div class="num" id="c_illegal">0</div></div></div>
+<div class="stat card"><i class="fa-solid fa-shield-halved"></i><div><div class="label">Areas Restored</div><div class="num" id="c_restored">0</div></div></div>
+</div>
+
+<div class="chart-card card"><h3 style="margin-bottom:.6rem;">Monthly Trends</h3><div class="chart-wrap"><canvas id="trendChart"></canvas></div></div>
+<div class="chart-card card"><h3 style="margin-bottom:.6rem;">Issue Breakdown</h3><div class="chart-wrap"><canvas id="pieChart"></canvas></div></div>
+</section>
+
+<!-- Tools -->
+<section class="tools" id="tools">
+<div class="card carbon-card">
+<h2>Carbon Footprint Converter</h2>
+<div class="carbon-controls">
+<input type="number" id="co2input" placeholder="Enter CO₂ in kg"/>
+<button id="btnConvert">Convert</button>
+</div>
+<div class="carbon-result" id="co2result">Equivalent trees needed: 0</div>
+<div class="chart-wrap" style="margin-top:.8rem;min-height:220px;"><canvas id="carbonChart"></canvas></div>
+</div>
+
+<div class="card leaderboard-card">
+<h2>Leaderboard</h2>
+<table class="leader-table" id="leaderTable">
+<thead><tr><th>#</th><th>Name</th><th>Points</th><th>CO₂ Saved (kg)</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</section>
+
+<!-- Footer -->
+<footer>
+<div class="footer-content">
+<div class="footer-left">
+<h3>Mangrove Monitoring Map</h3>
+<div style="display:flex;gap:.6rem;align-items:center;margin-bottom:.6rem;">
+<label for="stateFilter">Filter by State:</label>
+<select id="stateFilter" style="padding:.4rem .6rem;border-radius:8px;border:none;">
+<option value="all">All</option>
+<option value="West Bengal">West Bengal</option>
+<option value="Andhra Pradesh">Andhra Pradesh</option>
+<option value="Gujarat">Gujarat</option>
+<option value="Maharashtra">Maharashtra</option>
+</select>
+</div>
+<div id="map"></div>
+</div>
+
+<div class="footer-right">
+<h3>Quick Links & Social</h3>
+<div class="links">
+<div><a href="#">Home</a><a href="#analytics">Analytics</a><a href="#tools">Tools</a><a href="#map">Map</a></div>
+<div><a href="#">Policy</a><a href="#">Environment Dept</a><a href="#">Coastal Authority</a><a href="#">Research</a></div>
+</div>
+<div class="social-icons">
+<a href="#"><i class="fab fa-facebook-f"></i></a>
+<a href="#"><i class="fab fa-twitter"></i></a>
+<a href="#"><i class="fab fa-instagram"></i></a>
+<a href="#"><i class="fab fa-linkedin"></i></a>
+</div>
+<p style="margin-top:1rem;opacity:.9;">&copy; 2025 Coastal Conservation. All rights reserved.</p>
+</div>
+</div>
+</footer>
+
+<script>
+// Floating leaves
+(function makeLeaves(){
+  const container = document.getElementById('leaves-container');
+  for(let i=0;i<18;i++){
+    const leaf=document.createElement('div');
+    leaf.className='leaf';
+    leaf.style.left=Math.random()*100+'vw';
+    leaf.style.animationDuration= (5+Math.random()*6)+'s';
+    leaf.style.animationDelay=(Math.random()*5)+'s';
+    container.appendChild(leaf);
+  }
+})();
+
+// Logout
+document.querySelector('.logout-btn').addEventListener('click',()=>{ window.location.href='/login'; });
+
+// Alerts
+const alertList = document.getElementById('alertList');
+const sampleAlerts = [
+{type:'critical', icon:'fa-triangle-exclamation', title:'Illegal cutting reported', place:'Sundarbans, WB', time:'2 min ago'},
+{type:'warn', icon:'fa-water', title:'Tidal erosion observed', place:'Maharashtra Coast', time:'12 min ago'},
+{type:'info', icon:'fa-seedling', title:'Community plantation drive', place:'Krishna Delta, AP', time:'30 min ago'},
+];
+function addAlert(a){
+  const item=document.createElement('div');
+  item.className='alert-item '+a.type;
+  item.innerHTML = `
+  <div class="icon"><i class="fa-solid ${a.icon}"></i></div>
+  <div>
+    <div><strong>${a.title}</strong> — ${a.place}</div>
+    <div class="meta">${a.time}</div>
+    <div class="alert-actions">
+      <button class="btn btn-primary">View</button>
+      <button class="btn btn-ghost">Mark Read</button>
+    </div>
+  </div>`;
+  const viewBtn = item.querySelector('.btn-primary');
+  viewBtn.addEventListener('click',()=>alert('Viewing: '+a.title));
+  const markBtn = item.querySelector('.btn-ghost');
+  markBtn.addEventListener('click',()=>item.remove());
+  alertList.prepend(item);
+}
+sampleAlerts.forEach(addAlert);
+setInterval(()=>{
+  const variants=[
+    {type:'critical',icon:'fa-fire',title:'Wildfire risk alert',place:'Gulf of Kutch, GJ',time:'Just now'},
+    {type:'warn',icon:'fa-cloud-showers-heavy',title:'Heavy rainfall warning',place:'Ratnagiri, MH',time:'Just now'},
+    {type:'info',icon:'fa-leaf',title:'New saplings planted',place:'Sundarbans, WB',time:'Just now'},
+  ];
+  addAlert(variants[Math.floor(Math.random()*variants.length)]);
+  bumpCounters();
+},10000);
+
+// Counters
+const counters = {
+  reports: {el: document.getElementById('c_reports'), val: 1245},
+  trees: {el: document.getElementById('c_trees'), val: 87650},
+  illegal: {el: document.getElementById('c_illegal'), val: 312},
+  restored: {el: document.getElementById('c_restored'), val: 57}
+};
+function animateCount(el, to, dur=1200){
+  const start = 0; const diff = to - start; const t0 = performance.now();
+  function step(t){ const p=Math.min(1,(t - t0)/dur); el.textContent = Math.floor(start + diff * (p<0.5 ? 2*p*p : -1+(4-2*p)*p)); if(p<1) requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+}
+Object.values(counters).forEach(c=>animateCount(c.el,c.val));
+function bumpCounters(){ counters.reports.val+=1; animateCount(counters.reports.el,counters.reports.val,500); }
+
+// Charts
+const trendCtx=document.getElementById('trendChart');
+const pieCtx=document.getElementById('pieChart');
+const carbonCtx=document.getElementById('carbonChart');
+
+new Chart(trendCtx,{
+type:'line',
+data:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+datasets:[
+{label:'Reports',data:[80,92,110,140,136,150,162,170,165,180,190,210],borderColor:'#00ffff',backgroundColor:'rgba(0,255,255,0.15)',fill:true,tension:.35},
+{label:'Restoration',data:[10,12,15,18,20,22,24,26,29,31,33,36],borderColor:'#00ff7f',backgroundColor:'rgba(0,255,127,0.15)',fill:true,tension:.35}
+]},
+options:{responsive:true,plugins:{legend:{labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#e0f7fa'}},y:{ticks:{color:'#e0f7fa'}}}}
+});
+
+new Chart(pieCtx,{type:'doughnut',data:{labels:['Illegal cutting','Erosion','Pollution','Others'],datasets:[{data:[38,26,22,14],backgroundColor:['#ff5252','#ffd54f','#64b5f6','#b39ddb']}]},options:{plugins:{legend:{labels:{color:'#fff'}}}}});
+
+// Carbon converter
+const co2in=document.getElementById('co2input');
+const co2out=document.getElementById('co2result');
+const carbonChart=new Chart(carbonCtx,{type:'bar',data:{labels:[],datasets:[{label:'Trees Needed',data:[],backgroundColor:'rgba(0,255,127,0.6)'}]},options:{plugins:{legend:{labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#e0f7fa'}},y:{ticks:{color:'#e0f7fa'}}}}});
+document.getElementById('btnConvert').addEventListener('click',()=>{
+  const co2=parseFloat(co2in.value)||0;
+  const trees=+(co2*0.27).toFixed(2);
+  co2out.textContent=`Equivalent trees needed: ${trees}`;
+  const label=new Date().toLocaleTimeString();
+  carbonChart.data.labels.push(label);
+  carbonChart.data.datasets[0].data.push(trees);
+  if(carbonChart.data.labels.length>8){ carbonChart.data.labels.shift(); carbonChart.data.datasets[0].data.shift();}
+  carbonChart.update();
+});
+
+// Leaderboard
+const leaders=[
+{name:'Green Warriors', points: 9800, saved: 4120},
+{name:'Coastal Care', points: 8450, saved: 3560},
+{name:'Mangrove Friends', points: 7900, saved: 3320},
+{name:'Blue Planet Club', points: 7050, saved: 2985},
+];
+const tbody=document.querySelector('#leaderTable tbody');
+leaders.forEach((u,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td class="rank">${i+1}</td><td>${u.name}</td><td class="pts">${u.points}</td><td class="saved">${u.saved}</td>`;tbody.appendChild(tr);});
+function animateCells(sel){document.querySelectorAll(sel).forEach(td=>{const target=+td.textContent;let cur=0;const t0=performance.now();function step(t){const p=Math.min(1,(t-t0)/900);cur=Math.floor(target*p);td.textContent=cur;if(p<1) requestAnimationFrame(step);}requestAnimationFrame(step);});}
+animateCells('.pts'); animateCells('.saved');
+
+// Map
+const map=L.map('map').setView([20.5937,78.9629],5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
+const plantIcon=L.icon({iconUrl:'https://cdn-icons-png.flaticon.com/512/427/427735.png',iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-28]});
+const sites=[
+{name:'Sundarbans', state:'West Bengal', lat:21.95, lng:88.75, area:'10,000 ha', status:'Restoring'},
+{name:'Krishna Delta', state:'Andhra Pradesh', lat:15.89, lng:80.89, area:'1,500 ha', status:'Monitoring'},
+{name:'Gulf of Kutch', state:'Gujarat', lat:22.83, lng:69.14, area:'1,000 ha', status:'At Risk'},
+{name:'Ratnagiri Coast', state:'Maharashtra', lat:16.99, lng:73.31, area:'750 ha', status:'Stable'},
+];
+let markers=[];
+function renderMarkers(state='all'){
+markers.forEach(m=>map.removeLayer(m)); markers=[];
+sites.filter(s=>state==='all'||s.state===state).forEach(s=>{
+const m=L.marker([s.lat,s.lng],{icon:plantIcon}).addTo(map).bindPopup(`<strong>${s.name}</strong><br>${s.state}<br>Area: ${s.area}<br>Status: ${s.status}`);
+markers.push(m);
+});
+if(markers.length>0){ const g=L.featureGroup(markers); map.fitBounds(g.getBounds().pad(0.2)); }
+}
+renderMarkers();
+document.getElementById('stateFilter').addEventListener('change',e=>renderMarkers(e.target.value));
+</script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NGO Dashboard - Mangrove Community</title>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<style>
+/* Reset & Body */
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Roboto',sans-serif; }
+body { background: linear-gradient(135deg,#1e3c72,#2a5298,#00c6ff); color:#fff; min-height:100vh; overflow-x:hidden; position:relative; }
+
+/* Floating leaves */
+.leaf { position:absolute; width:40px; height:40px; background-image:url('https://cdn-icons-png.flaticon.com/512/427/427735.png'); background-size:contain; background-repeat:no-repeat; opacity:0.7; pointer-events:none; animation: floatLeaf linear infinite; }
+@keyframes floatLeaf { 0% { transform: translateY(100vh) rotate(0deg); opacity:0; } 10% { opacity:0.6; } 50% { opacity:0.8; } 100% { transform: translateY(-10vh) rotate(360deg); opacity:0; } }
+
+/* Navbar */
+header { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; background: rgba(0,0,0,0.6); position:sticky; top:0; z-index:1000; backdrop-filter:blur(10px); box-shadow:0 5px 15px rgba(0,0,0,0.3); }
+header h1 { font-size:1.8rem; color:#00ffff; }
+nav ul { display:flex; list-style:none; gap:2rem; flex-wrap:wrap;}
+nav ul li a { color:white; text-decoration:none; font-weight:500; cursor:pointer; transition:0.3s; }
+nav ul li a:hover { color:#ffd700; }
+.logout-btn { background:#ff4d4d; border:none; padding:0.5rem 1rem; border-radius:10px; cursor:pointer; font-weight:bold; transition:0.3s; }
+.logout-btn:hover { background:#ff1a1a; transform:scale(1.1); }
+
+/* Container & Cards */
+.container { display:flex; flex-wrap:wrap; gap:20px; padding:2rem; position:relative; z-index:1; }
+.card { background: rgba(255,255,255,0.15); padding:1.5rem; border-radius:20px; box-shadow:0 8px 20px rgba(0,0,0,0.3); transition:transform 0.3s,background 0.3s; flex:1; min-width:280px; }
+.card:hover { transform: translateY(-10px); }
+.card h2 { margin-bottom:1rem; text-align:center; }
+
+/* Steps Card */
+.steps-card h2 { color:#00ffff; }
+.steps-card ol li { margin:0.7rem 0; font-weight:500; display:flex; align-items:center; gap:0.5rem; }
+.steps-card ol li i { color:#00ffcc; font-size:1.2rem; }
+.step-btn { margin-left:10px; padding:0.3rem 0.6rem; border:none; border-radius:8px; background:#ffd700; color:#004d40; cursor:pointer; font-weight:bold; transition:0.3s; font-size:0.8rem; }
+.step-btn:hover { background:#ffb700; transform:scale(1.05); }
+
+/* Report Card */
+.report-card h2 { color:#ffd700; }
+.report-card input, .report-card select, .report-card textarea { width:100%; padding:0.7rem; border-radius:10px; border:none; margin:0.5rem 0; }
+.report-card button { margin-top:0.5rem; padding:0.7rem 1rem; border:none; border-radius:10px; background:#00ffff; color:#004d40; font-weight:bold; cursor:pointer; transition:0.3s; }
+.report-card button:hover { background:#00bcd4; transform:scale(1.05); }
+
+/* Carbon Card */
+.carbon-card h2 { color:#ff8c00; }
+.carbon-card input { width:70%; padding:0.5rem; border-radius:10px; border:none; margin-right:1rem; }
+.carbon-card button { padding:0.5rem 1rem; border:none; border-radius:10px; background:#00ff00; color:#004d40; font-weight:bold; cursor:pointer; transition:0.3s; }
+.carbon-card button:hover { background:#00cc44; transform:scale(1.05); }
+
+/* Status Card / Badges */
+.status-card h2 { color:#ff69b4; }
+.status-list li { display:flex; align-items:center; gap:0.7rem; margin:0.5rem 0; padding:0.5rem 1rem; border-radius:12px; }
+
+/* Leaderboard Card */
+.leaderboard-card h2 { color:#00ff7f; }
+.leaderboard-card table { width:100%; border-collapse:collapse; }
+.leaderboard-card th, .leaderboard-card td { padding:0.5rem 1rem; border-radius:8px; text-align:left; }
+.leaderboard-card tr:nth-child(even){ background: rgba(255,255,255,0.1); }
+.leaderboard-card th { background:#00ffff; color:#004d40; }
+
+/* Games Card */
+#game-display { display:none; margin-top:10px; background:rgba(255,255,255,0.1); padding:15px; border-radius:15px; }
+.game-btn { background:#00ffff; color:#004d40; border:none; padding:0.6rem 1rem; border-radius:8px; cursor:pointer; font-weight:bold; margin:5px 0; transition:0.3s; }
+.game-btn:hover { background:#00bcd4; transform:scale(1.05); }
+#back-btn { background:#ff5252; color:white; padding:8px 12px; border:none; border-radius:5px; cursor:pointer; margin-bottom:10px; }
+#back-btn:hover { background:#e60000; transform:scale(1.05); }
+
+/* Footer */
+footer { display:flex; gap:2rem; justify-content:space-between; padding:2rem; background: rgba(0,0,0,0.7); border-top-left-radius:30px; border-top-right-radius:30px; flex-wrap:wrap; }
+footer .footer-left, footer .footer-right { flex:1; min-width:300px; }
+footer h3 { color:#ffd700; margin-bottom:1rem; }
+footer a { color:#00ffff; text-decoration:none; }
+footer a:hover { text-decoration:underline; }
+.social-icons a { margin-right:10px; font-size:1.5rem; color:#00ffff; }
+.social-icons a:hover { color:#ffd700; }
+
+@media(max-width:900px){ .container { flex-direction:column; } nav ul { flex-direction:column; gap:1rem; } footer { flex-direction:column; gap:1rem; }
+}
+</style>
+</head>
+
+<body>
+<!-- Floating leaves -->
+<div id="leaves-container"></div>
+
+<header>
+  <h1>NGO Dashboard</h1>
+  <nav>
+    <ul>
+      <li><a onclick="showSection('leaderboard')">Leaderboard</a></li>
+      <li><a onclick="showSection('badges')">Badges</a></li>
+      <li><a onclick="showSection('games')">Games</a></li>
+      <li><a onclick="showSection('reports')">Reports</a></li>
+      <li><a onclick="showSection('steps')">Steps</a></li>
+      <li><a onclick="showSection('carbon')">Carbon</a></li>
+    </ul>
+  </nav>
+  <button class="logout-btn" onclick="alert('Logged Out!')">Logout</button>
+</header>
+
+<div class="container">
+  <!-- Leaderboard -->
+  <div class="card leaderboard-card" id="leaderboard">
+    <h2>Leaderboard</h2>
+    <table>
+      <tr><th>Rank</th><th>Name</th><th>Points</th></tr>
+      <tr><td>1</td><td>John Doe</td><td>150</td></tr>
+      <tr><td>2</td><td>Jane Smith</td><td>120</td></tr>
+      <tr><td>3</td><td>Alex Kumar</td><td>100</td></tr>
+    </table>
+  </div>
+
+  <!-- Badges -->
+  <div class="card status-card" id="badges">
+    <h2>Badges</h2>
+    <ul class="status-list" id="badge-list">
+      <li><i class="fas fa-seedling badge-icon"></i> Green Guardian</li>
+      <li><i class="fas fa-water badge-icon"></i> Ocean Protector</li>
+      <li><i class="fas fa-dragon badge-icon"></i> Mangrove Warrior</li>
+    </ul>
+  </div>
+
+  <!-- Games -->
+  <div class="card" id="games">
+    <h2>Games</h2>
+    <div id="game-list">
+      <button class="game-btn" data-game="quiz">Mangrove Quiz</button>
+      <button class="game-btn" data-game="planting">Tree Planting Game</button>
+    </div>
+
+    <div id="game-display">
+      <button id="back-btn">← Back</button>
+      <div id="game-content"></div>
+    </div>
+  </div>
+
+  <!-- Report -->
+  <div class="card report-card" id="reports">
+    <h2>Report an Issue</h2>
+    <textarea placeholder="Describe the issue..." rows="4"></textarea>
+    <button onclick="alert('Report Submitted!')">Submit</button>
+  </div>
+
+  <!-- Steps -->
+  <div class="card steps-card" id="steps">
+    <h2>Steps to Save Mangroves</h2>
+    <ol>
+      <li><i class="fas fa-check-circle"></i> Avoid dumping waste near coastal areas <button class="step-btn">Done</button></li>
+      <li><i class="fas fa-check-circle"></i> Participate in plantation drives <button class="step-btn">Done</button></li>
+      <li><i class="fas fa-check-circle"></i> Report illegal activities <button class="step-btn">Done</button></li>
+    </ol>
+  </div>
+
+  <!-- Carbon -->
+  <div class="card carbon-card" id="carbon">
+    <h2>Carbon Footprint Converter</h2>
+    <input type="number" id="carbonInput" placeholder="Enter kg CO₂">
+    <button onclick="convertCarbon()">Convert</button>
+    <p id="carbonResult"></p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3770.8791510467273!2d72.8777!3d19.0760!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7ce7ad3b7c7c1%3A0x2a2fcd74b4e0f8cb!2sMumbai!5e0!3m2!1sen!2sin!4v1693400000000!5m2!1sen!2sin" width="100%" height="200" style="border:0; border-radius:10px;" allowfullscreen="" loading="lazy"></iframe>
+  </div>
+  <div class="footer-right">
+    <h3>Quick Links & About</h3>
+    <ul>
+      <li><a href="#">About Our Mission</a></li>
+      <li><a href="#">Community Efforts</a></li>
+      <li><a href="#">Get Involved</a></li>
+      <li><a href="#">Privacy Policy</a></li>
+    </ul>
+    <div class="social-icons">
+      <a href="#"><i class="fa-brands fa-twitter"></i></a>
+      <a href="#"><i class="fa-brands fa-facebook"></i></a>
+      <a href="#"><i class="fa-brands fa-instagram"></i></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Show only selected section
+function showSection(sectionId){
+  const sections = document.querySelectorAll('.container .card');
+  sections.forEach(sec => sec.style.display = (sec.id === sectionId) ? 'block' : 'none');
+}
+
+// Carbon Converter
+function convertCarbon(){
+  const input = document.getElementById('carbonInput').value;
+  const result = document.getElementById('carbonResult');
+  if(input && input>0){
+    result.textContent = `${input} kg CO₂ = ${(input*0.0005).toFixed(2)} Mangrove Trees Needed`;
+  } else result.textContent = "Please enter a valid number.";
+}
+
+// Floating leaves
+const leavesContainer = document.getElementById("leaves-container");
+for(let i=0;i<10;i++){
+  const leaf = document.createElement("div");
+  leaf.className="leaf";
+  leaf.style.left = `${Math.random()*100}vw`;
+  leaf.style.animationDuration = `${5+Math.random()*5}s`;
+  leaf.style.animationDelay = `${Math.random()*5}s`;
+  leavesContainer.appendChild(leaf);
+}
+
+// Game logic
+const gameBtns = document.querySelectorAll('.game-btn');
+const gameList = document.getElementById('game-list');
+const gameDisplay = document.getElementById('game-display');
+const gameContent = document.getElementById('game-content');
+const backBtn = document.getElementById('back-btn');
+const badgeList = document.getElementById('badge-list');
+
+const games = {
+  quiz: `
+    <h3 style="color:#b2ebf2;">Mangrove Quiz</h3>
+    <div id="quiz-area">
+      <p id="quiz-question"></p>
+      <div id="quiz-options"></div>
+      <button id="next-btn">Next</button>
+      <p id="quiz-score"></p>
+    </div>
+  `,
+  planting: `
+    <h3 style="color:#b2ebf2;">Tree Planting Game</h3>
+    <p>Click the button to grow your mangrove tree!</p>
+    <button id="grow-btn" style="padding:10px 20px;background:#2a5934;color:white;border:none;border-radius:5px;cursor:pointer;">🌱 Grow Tree</button>
+    <p id="tree-message" style="margin-top:10px;"></p>
+  `
+};
+
+// Open game
+gameBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const selected = btn.dataset.game;
+    gameList.style.display='none';
+    gameDisplay.style.display='block';
+    gameContent.innerHTML = games[selected];
+
+    if(selected==='quiz') startQuiz();
+    if(selected==='planting') startPlantingGame();
+  });
+});
+
+// Back button
+backBtn.addEventListener('click', ()=>{
+  gameList.style.display='block';
+  gameDisplay.style.display='none';
+  gameContent.innerHTML='';
+});
+
+// Quiz logic
+function startQuiz(){
+  const quizData=[
+    { question:"What is the main role of mangroves?", options:["Tourism","Coastal protection","Fishing only","Urban development"], answer:"Coastal protection" },
+    { question:"Which species is commonly found in mangroves?", options:["Mangrove crab","Elephant","Penguin","Lion"], answer:"Mangrove crab" },
+    { question:"Mangroves help in:", options:["Air pollution","Carbon storage","Soil erosion","Traffic control"], answer:"Carbon storage" }
+  ];
+  let current=0, score=0;
+
+  function loadQuestion(){
+    document.getElementById('quiz-question').textContent = quizData[current].question;
+    const optionsDiv = document.getElementById('quiz-options');
+    optionsDiv.innerHTML='';
+    quizData[current].options.forEach(opt=>{
+      const btn = document.createElement('button');
+      btn.textContent = opt;
+      btn.style.cssText="margin:5px;padding:8px 12px;background:#2a5934;color:white;border:none;border-radius:5px;cursor:pointer;";
+      btn.onclick = ()=>{
+        if(opt===quizData[current].answer) score++;
+        document.getElementById('quiz-score').textContent = `Score: ${score}/${quizData.length}`;
+      };
+      optionsDiv.appendChild(btn);
+    });
+  }
+
+  document.getElementById('next-btn').onclick = ()=>{
+    current++;
+    if(current<quizData.length) loadQuestion();
+    else {
+      document.getElementById('quiz-question').textContent="Quiz Completed!";
+      document.getElementById('quiz-options').innerHTML='';
+      if(score>=2) badgeList.innerHTML += '<li>🏆 Quiz Master</li>';
+    }
+  };
+
+  loadQuestion();
+}
+
+// Planting game logic
+function startPlantingGame(){
+  const growBtn = document.getElementById('grow-btn');
+  const treeMsg = document.getElementById('tree-message');
+  let stage=0;
+  growBtn.onclick=()=>{
+    stage++;
+    if(stage===1) treeMsg.textContent="🌱 Seed planted!";
+    else if(stage===2) treeMsg.textContent="🌿 The plant is growing!";
+    else if(stage===3) { 
+      treeMsg.textContent="🌳 Your mangrove is fully grown!";
+      badgeList.innerHTML += '<li>🌳 Tree Planter</li>';
+    }
+    else treeMsg.textContent="🌳 Your tree is thriving!";
+  };
+}
+</script>
+</body>
+</html>
